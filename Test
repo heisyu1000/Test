@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>如果有 $24 金幣，會如何選擇自己嘅夢想工作？ - 8-Bit Pixel RPG 職涯問卷</title>
+  
+  <!-- Retro Pixel Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js for High Contrast Radar Chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #0d0818;
+      --panel-bg: #181028;
+      --card-bg: #23163c;
+      --card-border: #523180;
+      --gold: #ffd700;
+      --gold-dark: #b39200;
+      --cyan: #00f0ff;
+      --pink: #ff007f;
+      --green: #39ff14;
+      --purple-glow: #a855f7;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-pixel: 'Press Start 2P', 'VT323', monospace;
+      --font-sans: 'Noto Sans TC', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      margin: 0;
+      padding: 15px;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle, rgba(168, 85, 247, 0.12) 1px, transparent 1px),
+        linear-gradient(to bottom, #090510, #180d2c);
+      background-size: 20px 20px, 100% 100%;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* CRT Scanline Overlay */
+    body::after {
+      content: " ";
+      display: block;
+      position: fixed;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+      background-size: 100% 4px;
+      z-index: 999;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    /* Pixelated Container Box */
+    .pixel-box {
+      background: var(--panel-bg);
+      border: 4px solid #000;
+      box-shadow: 
+        -4px 0 0 0 var(--purple-glow),
+        4px 0 0 0 var(--purple-glow),
+        0 -4px 0 0 var(--purple-glow),
+        0 4px 0 0 var(--purple-glow),
+        inset -4px -4px 0 0 #090510,
+        inset 4px 4px 0 0 #3b1d62;
+      padding: 20px;
+      margin-bottom: 25px;
+      position: relative;
+    }
+
+    .pixel-box-gold {
+      box-shadow: 
+        -4px 0 0 0 var(--gold),
+        4px 0 0 0 var(--gold),
+        0 -4px 0 0 var(--gold),
+        0 4px 0 0 var(--gold),
+        inset -4px -4px 0 0 #5e4d00,
+        inset 4px 4px 0 0 #ffe34d;
+    }
+
+    .pixel-box-cyan {
+      box-shadow: 
+        -4px 0 0 0 var(--cyan),
+        4px 0 0 0 var(--cyan),
+        0 -4px 0 0 var(--cyan),
+        0 4px 0 0 var(--cyan),
+        inset -4px -4px 0 0 #005c66,
+        inset 4px 4px 0 0 #80f7ff;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding-bottom: 60px;
+    }
+
+    /* Header Styling */
+    .header-banner {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .header-banner h1 {
+      font-family: var(--font-pixel);
+      font-size: 1.15rem;
+      color: var(--gold);
+      text-shadow: 3px 3px 0 #000, -2px -2px 0 #886a00, 0 0 12px var(--gold);
+      line-height: 1.8;
+      margin: 0 0 12px 0;
+    }
+
+    .header-subtitle {
+      font-size: 1rem;
+      color: var(--cyan);
+      font-weight: bold;
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    /* Sticky HUD Bar */
+    .sticky-hud {
+      position: sticky;
+      top: 10px;
+      z-index: 100;
+      background: rgba(24, 16, 40, 0.95);
+      backdrop-filter: blur(4px);
+      padding: 12px 18px;
+    }
+
+    .hud-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .hud-title {
+      font-family: var(--font-pixel);
+      font-size: 0.75rem;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hud-coins {
+      font-family: var(--font-pixel);
+      font-size: 0.95rem;
+      color: var(--gold);
+      background: #000;
+      padding: 6px 14px;
+      border: 2px solid var(--gold);
+      border-radius: 20px;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+    }
+
+    .sound-btn {
+      background: #000;
+      border: 2px solid var(--pink);
+      color: var(--pink);
+      font-family: var(--font-pixel);
+      font-size: 0.65rem;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .sound-btn:hover {
+      background: var(--pink);
+      color: #000;
+    }
+
+    /* Category Cards */
+    .cat-card {
+      background: var(--card-bg);
+      margin-bottom: 25px;
+    }
+
+    .cat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px dashed var(--purple-glow);
+      padding-bottom: 12px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .cat-title {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .coin-slots {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      background: #000;
+      padding: 6px 10px;
+      border-radius: 20px;
+      border: 2px solid var(--card-border);
+    }
+
+    .pixel-coin {
+      font-size: 0.95rem;
+      filter: grayscale(100%) opacity(0.3);
+      transition: all 0.2s ease;
+    }
+
+    .pixel-coin.active {
+      filter: grayscale(0%) opacity(1);
+      transform: scale(1.15);
+      animation: coinJump 0.8s infinite alternate;
+    }
+
+    @keyframes coinJump {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(-2px) scale(1.2); }
+    }
+
+    /* Options Styling */
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-item {
+      background: rgba(13, 8, 24, 0.6);
+      border: 2px solid var(--card-border);
+      padding: 12px 14px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .option-item:hover {
+      border-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.08);
+      transform: translateX(4px);
+    }
+
+    .option-item.selected {
+      border-color: var(--gold);
+      background: rgba(255, 215, 0, 0.12);
+      box-shadow: inset 0 0 10px rgba(255, 215, 0, 0.15);
+    }
+
+    .option-item input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--text-muted);
+      background: #000;
+      border-radius: 3px;
+      margin-right: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .option-item.selected input[type="checkbox"] {
+      background: var(--gold);
+      border-color: #fff;
+    }
+
+    .option-item.selected input[type="checkbox"]::after {
+      content: "🪙";
+      font-size: 13px;
+      margin-top: -2px;
+    }
+
+    .option-text {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+      flex-grow: 1;
+    }
+
+    .coin-badge {
+      font-family: var(--font-pixel);
+      font-size: 0.65rem;
+      background: #000;
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      padding: 4px 8px;
+      border-radius: 10px;
+      margin-left: 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .warning-banner {
+      display: none;
+      background: #ff0055;
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.85rem;
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-top: 10px;
+      text-align: center;
+      box-shadow: 0 0 10px #ff0055;
+      animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-1px, 0, 0); }
+      20%, 80% { transform: translate3d(2px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+      40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
+
+    /* Submit Button */
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(180deg, #39ff14 0%, #1ea300 100%);
+      color: #000;
+      font-family: var(--font-pixel);
+      font-size: 0.95rem;
+      padding: 18px;
+      border: 4px solid #000;
+      cursor: pointer;
+      box-shadow: 
+        0 -4px 0 0 #79ff5c inset,
+        0 4px 0 0 #0d5200 inset,
+        -4px 0 0 0 #39ff14,
+        4px 0 0 0 #39ff14,
+        0 -4px 0 0 #39ff14,
+        0 4px 0 0 #39ff14;
+      text-shadow: 1px 1px 0 #88ff70;
+      transition: all 0.1s;
+      margin-top: 20px;
+    }
+
+    .btn-submit:hover {
+      filter: brightness(1.15);
+      transform: translateY(-2px);
+    }
+
+    .btn-submit:active {
+      transform: translateY(2px);
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
+    }
+
+    /* Results Dashboard */
+    #result-section {
+      display: none;
+      margin-top: 35px;
+    }
+
+    .result-title {
+      text-align: center;
+      font-family: var(--font-pixel);
+      color: var(--cyan);
+      font-size: 1rem;
+      margin-bottom: 20px;
+      text-shadow: 0 0 8px var(--cyan);
+    }
+
+    .character-badge {
+      display: inline-block;
+      background: var(--gold);
+      color: #000;
+      font-family: var(--font-pixel);
+      font-size: 1.15rem;
+      padding: 10px 20px;
+      border: 3px solid #000;
+      box-shadow: 0 0 15px var(--gold);
+      margin: 15px 0;
+      letter-spacing: 2px;
+    }
+
+    .chart-container {
+      background: rgba(9, 5, 16, 0.9);
+      border: 2px solid var(--purple-glow);
+      border-radius: 8px;
+      padding: 15px;
+      max-width: 600px;
+      margin: 0 auto 25px auto;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .riasec-card {
+      background: #150b28;
+      border: 2px solid var(--card-border);
+      padding: 12px 15px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .riasec-card.top-rank {
+      border-color: var(--gold);
+      background: rgba(255, 215, 0, 0.08);
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    }
+
+    .riasec-card h4 {
+      margin: 0;
+      color: var(--text-main);
+      font-size: 0.95rem;
+    }
+
+    .riasec-card p {
+      margin: 3px 0 0 0;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .score-badge {
+      font-family: var(--font-pixel);
+      font-size: 0.85rem;
+      color: var(--gold);
+      background: #000;
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--gold);
+    }
+
+    .advice-box {
+      margin-top: 25px;
+      background: #180d30;
+      border: 2px solid var(--cyan);
+      padding: 20px;
+      border-radius: 4px;
+    }
+
+    .advice-box h3 {
+      font-family: var(--font-pixel);
+      color: var(--cyan);
+      font-size: 0.85rem;
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .advice-box p {
+      line-height: 1.7;
+      color: #e2e8f0;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .header-banner h1 { font-size: 0.9rem; }
+      .header-subtitle { font-size: 0.85rem; }
+      .sticky-hud { padding: 8px 12px; }
+      .hud-title { font-size: 0.65rem; }
+      .hud-coins { font-size: 0.75rem; }
+      .btn-submit { font-size: 0.8rem; padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  
+  <!-- Header Title -->
+  <div class="pixel-box pixel-box-gold header-banner">
+    <h1>如果有 $24 金幣<br>會如何選擇自己嘅夢想工作？</h1>
+    <div class="header-subtitle">👾 Holland 8-Bit 冒險者天賦投資測試 🪙</div>
+  </div>
+
+  <!-- Sticky Coin HUD -->
+  <div class="pixel-box sticky-hud">
+    <div class="hud-flex">
+      <div class="hud-title">
+        <span>🎮 冒險者金幣總庫存:</span>
+      </div>
+      <div class="hud-coins" id="hud-total-coins">
+        <span>🪙 剩餘:</span> <span id="coins-left">24</span> / 24 金幣
+      </div>
+      <button class="sound-btn" id="sound-btn" onclick="toggleSound()">
+        🔊 音效: ON
+      </button>
+    </div>
+  </div>
+
+  <!-- Quiz Form Category Wrapper -->
+  <form id="quiz-form">
+    <div id="quiz-wrapper"></div>
+    
+    <button type="submit" class="btn-submit">
+      🚀 開啟職業圖鑑 / 產生結果
+    </button>
+  </form>
+
+  <!-- Results Dashboard -->
+  <div id="result-section" class="pixel-box pixel-box-cyan">
+    <div class="result-title">
+      ✨ 冒險者職業圖鑑解鎖成功 ✨
+    </div>
+
+    <div style="text-align: center;">
+      <div style="color: var(--text-muted); font-size: 0.85rem;">你的夢想職業屬性代碼 (RIASEC)</div>
+      <div class="character-badge" id="archetype-code">---</div>
+      <div style="color: var(--gold); font-size: 1.1rem; font-weight: bold; margin-bottom: 20px;" id="archetype-title">
+        未解鎖職業角色
+      </div>
+    </div>
+
+    <!-- Hexagonal Radar Chart Container -->
+    <div class="chart-container">
+      <canvas id="radarChart"></canvas>
+    </div>
+
+    <!-- Breakdown Scores -->
+    <div style="font-family: var(--font-pixel); font-size: 0.75rem; color: var(--cyan); margin-top: 20px;">
+      📊 六大職能金幣分配細節:
+    </div>
+    <div class="score-grid" id="score-cards"></div>
+
+    <!-- RPG Dynamic Career Advice -->
+    <div class="advice-box">
+      <h3>🗡️ 專屬夢想職業推薦與策略建議</h3>
+      <p id="career-description">請完成問卷以獲得專屬的職涯冒險建議。</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+// Web Audio API Sound Generator
+let soundEnabled = true;
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function playCoinSFX() {
+  if (!soundEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(987.77, audioCtx.currentTime); // B5
+    osc.frequency.setValueAtTime(1318.51, audioCtx.currentTime + 0.08); // E6
+
+    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.28);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.28);
+  } catch (e) {}
+}
+
+function playErrorSFX() {
+  if (!soundEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(110, audioCtx.currentTime + 0.1);
+
+    gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.25);
+  } catch (e) {}
+}
+
+function playVictorySFX() {
+  if (!soundEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+    notes.forEach((freq, idx) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.value = freq;
+
+      const startTime = audioCtx.currentTime + (idx * 0.1);
+      gain.gain.setValueAtTime(0.1, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(startTime);
+      osc.stop(startTime + 0.2);
+    });
+  } catch (e) {}
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('sound-btn').innerText = soundEnabled ? '🔊 音效: ON' : '🔇 音效: OFF';
+}
+
+
+// Question Data Set with exact Cantonese text
+const quizData = [
+  {
+    category: "一、工作性質",
+    maxCoins: 6,
+    items: [
+      { text: "喜歡戶外、機械和體力活動、嗜好和職業", type: "R", weight: 1 },
+      { text: "喜歡與事物、物體和動物打交道，而不是與想法、數據和人打交道", type: "R", weight: 1 },
+      { text: "往往具備機械及運動能力", type: "R", weight: 1 },
+      { text: "喜歡建造、塑造、改造和修理周圍的事物", type: "R", weight: 1 },
+      { text: "喜歡使用設備和機械，並看到實際的成果", type: "R", weight: 1 },
+      { text: "是堅持不懈、勤奮的建造者，但很少有創造力和原創性，更喜歡熟悉的方法和既定的模式", type: "R", weight: 1 },
+      { text: "需要理解、解釋和預測周圍發生的事情", type: "I", weight: 1 },
+      { text: "具有學術精神和科學思維，傾向於對非科學、簡單化或超自然的解釋持悲觀和批判態度", type: "I", weight: 1 },
+      { text: "容易沉浸於自己正在做的事情中，可能看起來對其他一切都漠不關心", type: "I", weight: 1 },
+      { text: "獨立性強，喜歡獨自工作", type: "I", weight: 1 },
+      { text: "既不喜歡指導他人，也不喜歡被指導", type: "I", weight: 1 },
+      { text: "具有理論性和分析性思維，覺得抽象和模糊的問題和情況具有挑戰性", type: "I", weight: 1 },
+      { text: "避免外在規則過於嚴苛的結構化環境，但自身卻自律性強、精準且有條理", type: "I", weight: 1 },
+      { text: "喜歡扮演幫助和促進的角色，例如教師、調解員、顧問或諮商師", type: "S", weight: 2 },
+      { text: "不喜歡與機器或數據打交道，也不喜歡高度組織化、例行化和重複性的工作", type: "S", weight: 2 },
+      { text: "喜歡與他人合作，傾向團隊協作", type: "S", weight: 2 },
+      { text: "喜歡組織、指導、管理和控制團隊活動，以實現個人或組織目標", type: "E", weight: 1 },
+      { text: "喜歡掌控局面，並對事情的進展負責", type: "E", weight: 1 },
+      { text: "精力充沛、熱情洋溢地發動及監督各項活動", type: "E", weight: 1 },
+      { text: "往往不喜歡需要科學能力和系統性理論思維的活動", type: "E", weight: 1 },
+      { text: "避免需要注重細節和遵循固定流程的活動", type: "E", weight: 1 },
+      { text: "喜歡領導、銷售、激勵和說服他人", type: "E", weight: 1 },
+      { text: "做事有條理且務實", type: "C", weight: 1 },
+      { text: "喜歡遵循既定流程的文書和計算工作", type: "C", weight: 1 },
+      { text: "在清楚自己職責的情況下，他們會感到最自在", type: "C", weight: 1 },
+      { text: "喜歡在舒適的室內環境工作", type: "C", weight: 1 },
+      { text: "喜歡事情照計畫進行，不願改變慣例", type: "C", weight: 1 },
+      { text: "喜歡透過文字、音樂、材料以及肢體表達（如表演和舞蹈）來創造新穎獨特的事物，以此展現個性", type: "A", weight: 2 },
+      { text: "更喜歡獨立工作", type: "A", weight: 1 },
+      { text: "偏好抽象任務與非結構化環境", type: "A", weight: 2 },
+      { text: "難以在高度有序和系統化的環境中高效工作", type: "A", weight: 1 },
+      { text: "喜歡音樂、寫作、表演、雕塑等創作", type: "A", weight: 2 }
+    ]
+  },
+  {
+    category: "二、個人性格",
+    maxCoins: 6,
+    items: [
+      { text: "傾向於用絕對的眼光思考，不喜歡模糊不清，也不喜歡處理抽象、理論和哲學問題", type: "R", weight: 3 },
+      { text: "物質主義、傳統與保守", type: "R", weight: 2 },
+      { text: "天生好奇、好問、嚴謹、善於分析、個性內斂", type: "I", weight: 2 },
+      { text: "富有創造力，常難以接受傳統的態度和價值觀", type: "I", weight: 2 },
+      { text: "對自己智力能力充滿信心", type: "I", weight: 2 },
+      { text: "友善、熱情、值得信賴、慷慨、積極、外向、樂於合作", type: "S", weight: 1 },
+      { text: "對生活和與他人互動充滿理想主義、敏感和認真負責", type: "S", weight: 2 },
+      { text: "喜歡探討哲學問題，例如生命的本質和意義、宗教和道德", type: "S", weight: 2 },
+      { text: "外向、自信、果斷、有說服力、喜歡冒險、有野心、樂觀", type: "E", weight: 3 },
+      { text: "認為自己受歡迎", type: "E", weight: 2 },
+      { text: "可靠、有效率且認真負責", type: "C", weight: 2 },
+      { text: "傾向保守和傳統", type: "C", weight: 2 },
+      { text: "自我控制能力強，不輕易表達情感", type: "C", weight: 2 },
+      { text: "富有創意、善於表達、獨具匠心、直覺敏銳、不拘一格、個性鮮明", type: "A", weight: 1 },
+      { text: "喜歡與眾不同，力求脫穎而出", type: "A", weight: 1 },
+      { text: "在穿著、言談和行為上往往不受拘束、不拘一格", type: "A", weight: 1 },
+      { text: "行事衝動", type: "A", weight: 1 },
+      { text: "非常重視美和美感品質", type: "A", weight: 1 },
+      { text: "情緒化且複雜", type: "A", weight: 1 }
+    ]
+  },
+  {
+    category: "三、社交模式",
+    maxCoins: 6,
+    items: [
+      { text: "人際互動和語言表達能力較弱，在成為眾人矚目的焦點時常常感到不自在", type: "R", weight: 3 },
+      { text: "傾向於發現他們難以表達自己的感受，可能被認為很害羞", type: "R", weight: 3 },
+      { text: "在社交場合常常感到力不從心", type: "I", weight: 1 },
+      { text: "往往缺乏領導力和說服力", type: "I", weight: 1 },
+      { text: "在人際關係中往往比較矜持和正式", type: "I", weight: 2 },
+      { text: "通常不善於表達情感，可能被認為不夠友善", type: "I", weight: 2 },
+      { text: "喜歡與人交往", type: "S", weight: 2 },
+      { text: "善於表達自己，在人際關係中具有說服力", type: "S", weight: 1 },
+      { text: "喜歡被關注，享受成為群體中心或接近中心的位置", type: "S", weight: 1 },
+      { text: "與他人相處融洽，並且能夠自然地表達自己的情感", type: "S", weight: 1 },
+      { text: "善於交際、待人友善，樂於助人，富有愛心", type: "S", weight: 1 },
+      { text: "喜歡影響他人", type: "E", weight: 3 },
+      { text: "喜歡社交聚會，並樂於與知名人士和有影響力的人交往", type: "E", weight: 3 },
+      { text: "享受歸屬感帶來的安全感，是優秀的團隊成員", type: "C", weight: 2 },
+      { text: "注重地位，但通常不渴望擔任領導高位", type: "C", weight: 1 },
+      { text: "通常會遵守既定標準，並追隨那些他們認同的權威人士", type: "C", weight: 2 },
+      { text: "避免建立過於親密的人際關係，更傾向於較為隨意的關係", type: "C", weight: 1 },
+      { text: "渴望關注和讚揚，但對批評較為敏感", type: "A", weight: 2 },
+      { text: "尋求他人的認可和贊同，但往往難以建立親密的人際關係；壓力太大時會刻意迴避", type: "A", weight: 2 },
+      { text: "會透過藝術等間接方式與他人建立聯繫，以此來彌補疏離感或孤獨感", type: "A", weight: 2 }
+    ]
+  },
+  {
+    category: "四、成就感來源",
+    maxCoins: 6,
+    items: [
+      { text: "重視自然、常識、誠實和務實", type: "R", weight: 3 },
+      { text: "看到實際、具體的成果（建造、修理、使用機械後嘅可見產出）", type: "R", weight: 3 },
+      { text: "重視創造力、準確性、成就感和獨立性", type: "I", weight: 3 },
+      { text: "理解、解釋和預測周圍發生的事情（求知本身就係滿足）", type: "I", weight: 3 },
+      { text: "重視服務他人、公平、理解和同理心", type: "S", weight: 3 },
+      { text: "幫助、促進、教導或調解他人之後嘅意義感", type: "S", weight: 3 },
+      { text: "重視成功、地位、權力、責任和主動性", type: "E", weight: 2 },
+      { text: "組織、領導、影響他人並達成個人或組織目標", type: "E", weight: 2 },
+      { text: "喜歡旅行和探索，通常擁有令人興奮且昂貴的愛好", type: "E", weight: 2 },
+      { text: "重視準確性、誠實、堅持與秩序", type: "C", weight: 2 },
+      { text: "重視物質享受和擁有的物品", type: "C", weight: 2 },
+      { text: "事情按計畫、按既定標準完成所帶來的安全感同勝任感", type: "C", weight: 2 },
+      { text: "重視美、自我表達、想像和創造力", type: "A", weight: 3 },
+      { text: "創造新穎獨特的事物、展現個性，以及獲得關注與讚揚", type: "A", weight: 3 }
+    ]
+  }
+];
+
+const riasecMeta = {
+  R: { name: "現實型 (Realistic)", title: "實幹勇者", icon: "🛠️", color: "#ff0055" },
+  I: { name: "研究型 (Investigative)", title: "智慧學者", icon: "🔬", color: "#39ff14" },
+  A: { name: "藝術型 (Artistic)", title: "靈魂吟遊詩人", icon: "🎨", color: "#ff007f" },
+  S: { name: "社交型 (Social)", title: "聖光導師", icon: "🤝", color: "#00f0ff" },
+  E: { name: "進取型 (Enterprising)", title: "霸氣領主", icon: "👑", color: "#ffd700" },
+  C: { name: "傳統型 (Conventional)", title: "秩序守衛", icon: "📋", color: "#a855f7" }
+};
+
+let radarChart = null;
+
+
+function renderQuiz() {
+  const wrapper = document.getElementById('quiz-wrapper');
+  wrapper.innerHTML = '';
+
+  quizData.forEach((cat, catIdx) => {
+    const card = document.createElement('div');
+    card.className = 'pixel-box cat-card';
+
+    let coinSlots = '';
+    for (let i = 0; i < cat.maxCoins; i++) {
+      coinSlots += `<span class="pixel-coin" id="coin-slot-${catIdx}-${i}">🪙</span>`;
+    }
+
+    card.innerHTML = `
+      <div class="cat-header">
+        <div class="cat-title">${cat.category}</div>
+        <div class="coin-slots">
+          ${coinSlots}
+          <span style="font-family: var(--font-pixel); font-size:0.75rem; color:var(--gold); margin-left:6px;" id="cat-coin-text-${catIdx}">0/6🪙</span>
+        </div>
+      </div>
+      <div class="options-container">
+        ${cat.items.map((item, itemIdx) => `
+          <label class="option-item" id="label-${catIdx}-${itemIdx}">
+            <input type="checkbox" 
+                   id="chk-${catIdx}-${itemIdx}" 
+                   data-cat="${catIdx}" 
+                   data-type="${item.type}" 
+                   data-weight="${item.weight}" 
+                   onchange="handleOptionToggle(${catIdx}, ${itemIdx}, this)">
+            <span class="option-text">${item.text}</span>
+            <span class="coin-badge">+${item.weight} 🪙</span>
+          </label>
+        `).join('')}
+      </div>
+      <div class="warning-banner" id="warning-${catIdx}">
+        ⚠️ 該範疇金幣上限為 6 金幣！
+      </div>
+    `;
+    wrapper.appendChild(card);
+  });
+}
+
+function handleOptionToggle(catIdx, itemIdx, checkbox) {
+  const catCheckboxes = document.querySelectorAll(`input[data-cat="${catIdx}"]:checked`);
+  let catCoins = 0;
+
+  catCheckboxes.forEach(cb => {
+    catCoins += parseInt(cb.dataset.weight);
+  });
+
+  const maxCoins = quizData[catIdx].maxCoins;
+  const warningEl = document.getElementById(`warning-${catIdx}`);
+  const labelEl = document.getElementById(`label-${catIdx}-${itemIdx}`);
+
+  // Limit check
+  if (catCoins > maxCoins) {
+    checkbox.checked = false;
+    playErrorSFX();
+    warningEl.style.display = 'block';
+    setTimeout(() => { warningEl.style.display = 'none'; }, 2500);
+    return;
+  }
+
+  if (checkbox.checked) {
+    labelEl.classList.add('selected');
+    playCoinSFX();
+  } else {
+    labelEl.classList.remove('selected');
+  }
+
+  updateCategoryCoins(catIdx, catCoins);
+  updateTotalHUD();
+}
+
+function updateCategoryCoins(catIdx, catCoins) {
+  const maxCoins = quizData[catIdx].maxCoins;
+  for (let i = 0; i < maxCoins; i++) {
+    const coinEl = document.getElementById(`coin-slot-${catIdx}-${i}`);
+    if (i < catCoins) {
+      coinEl.classList.add('active');
+    } else {
+      coinEl.classList.remove('active');
+    }
+  }
+  document.getElementById(`cat-coin-text-${catIdx}`).innerText = `${catCoins}/6🪙`;
+}
+
+function updateTotalHUD() {
+  const allChecked = document.querySelectorAll('input[type="checkbox"]:checked');
+  let usedCoins = 0;
+  allChecked.forEach(cb => {
+    usedCoins += parseInt(cb.dataset.weight);
+  });
+
+  const coinsLeft = 24 - usedCoins;
+  document.getElementById('coins-left').innerText = coinsLeft;
+
+  const hudCoinsBox = document.getElementById('hud-total-coins');
+  if (coinsLeft === 0) {
+    hudCoinsBox.style.borderColor = "var(--green)";
+    hudCoinsBox.style.color = "var(--green)";
+  } else {
+    hudCoinsBox.style.borderColor = "var(--gold)";
+    hudCoinsBox.style.color = "var(--gold)";
+  }
+}
+
+
+document.getElementById('quiz-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  playVictorySFX();
+
+  const scores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+  const allChecked = document.querySelectorAll('input[type="checkbox"]:checked');
+
+  allChecked.forEach(cb => {
+    const type = cb.dataset.type;
+    const weight = parseInt(cb.dataset.weight);
+    scores[type] += weight;
+  });
+
+  const sortedTypes = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+  const primaryCode = sortedTypes.slice(0, 3).join('');
+
+  // Show Results
+  const resultSec = document.getElementById('result-section');
+  resultSec.style.display = 'block';
+  resultSec.scrollIntoView({ behavior: 'smooth' });
+
+  // Update Character Badges
+  document.getElementById('archetype-code').innerText = primaryCode;
+  
+  const top1 = riasecMeta[sortedTypes[0]];
+  const top2 = riasecMeta[sortedTypes[1]];
+  document.getElementById('archetype-title').innerText = `${top1.icon} ${top1.title} × ${top2.title}`;
+
+  // Render Radar Chart
+  renderRadarChart(scores);
+
+  // Render Score Breakdowns
+  renderScoreGrid(scores, sortedTypes);
+
+  // Render RPG Career Advice
+  renderCareerAdvice(sortedTypes);
+});
+
+function renderRadarChart(scores) {
+  const ctx = document.getElementById('radarChart').getContext('2d');
+
+  if (radarChart) {
+    radarChart.destroy();
+  }
+
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: [
+        ['🛠️ 現實型 (R)', '實幹勇者'],
+        ['🔬 研究型 (I)', '智慧學者'],
+        ['🎨 藝術型 (A)', '靈魂吟遊詩人'],
+        ['🤝 社交型 (S)', '聖光導師'],
+        ['👑 進取型 (E)', '霸氣領主'],
+        ['📋 傳統型 (C)', '秩序守衛']
+      ],
+      datasets: [{
+        label: '已投金幣數 (🪙)',
+        data: [scores.R, scores.I, scores.A, scores.S, scores.E, scores.C],
+        backgroundColor: 'rgba(0, 240, 255, 0.25)',
+        borderColor: '#00f0ff',
+        borderWidth: 3,
+        pointBackgroundColor: '#ffd700',
+        pointBorderColor: '#000',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+        pointHoverRadius: 9
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        r: {
+          angleLines: { color: 'rgba(168, 85, 247, 0.4)', lineWidth: 2 },
+          grid: { color: 'rgba(168, 85, 247, 0.25)' },
+          suggestedMin: 0,
+          suggestedMax: 12,
+          ticks: {
+            stepSize: 2,
+            color: '#ffd700',
+            backdropColor: 'transparent',
+            font: { family: 'VT323', size: 14 }
+          },
+          pointLabels: {
+            color: '#ffffff',
+            font: { family: 'Noto Sans TC', size: 12, weight: 'bold' }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#ffd700',
+            font: { family: 'Press Start 2P', size: 10 }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderScoreGrid(scores, sortedTypes) {
+  const container = document.getElementById('score-cards');
+  container.innerHTML = '';
+
+  Object.keys(riasecMeta).forEach(type => {
+    const meta = riasecMeta[type];
+    const coinScore = scores[type];
+    const isTop = sortedTypes.slice(0, 2).includes(type);
+
+    const card = document.createElement('div');
+    card.className = `riasec-card ${isTop ? 'top-rank' : ''}`;
+    card.innerHTML = `
+      <div>
+        <h4>${meta.icon} ${meta.name}</h4>
+        <p>${meta.title}</p>
+      </div>
+      <div class="score-badge">
+        ${coinScore} 🪙
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderCareerAdvice(sortedTypes) {
+  const top1 = sortedTypes[0];
+  const top2 = sortedTypes[1];
+  const code = top1 + top2;
+
+  const careerMap = {
+    "RI": "理想職業：機器人工程師、生物機械專家、航空技術人員、自動化設備設計師。",
+    "RA": "理想職業：3D遊戲模型師、建築景觀設計師、道具與舞台美術指導、工藝雕刻家。",
+    "RS": "理想職業：物理治療師、戶外冒險教練、消防救護員、野生動物保育員。",
+    "RE": "理想職業：工程專案總監、科技農場創辦人、運動品牌營運經理。",
+    "RC": "理想職業：精密設備維修技師、機車/飛機工程師、數據中心設施運維專家。",
+    "IA": "理想職業：UX/UI使用者體驗研究員、遊戲關卡設計師、數據視覺化設計師、科幻作家。",
+    "IS": "理想職業：醫學研究員、大學教授、心理學專家、科普教育家。",
+    "IE": "理想職業：科技風險投資分析師、商業智慧(BI)顧問、數據科學家。",
+    "IC": "理想職業：網絡安全分析師、精算師、金融數據審計師、軟體架構師。",
+    "AS": "理想職業：藝術治療師、音樂教師、劇場導演、內容創作者/網紅、品牌視覺總監。",
+    "AE": "理想職業：廣告創意總監、時尚品牌創辦人、影視製作人、娛樂經紀人。",
+    "AC": "理想職業：書籍排版設計師、數位典藏專家、建築繪圖師、展覽視覺總監。",
+    "SE": "理想職業：人力資源總監、公關總監、非營利組織領導者、企業培訓大師。",
+    "SC": "理想職業：行政主管、社會工作督導、學校教務主任、客戶成功經理(CSM)。",
+    "EC": "理想職業：企業 CEO/COO、財務總監、營運專案經理(PMP)、供應鏈總監。"
+  };
+
+  const defaultAdvice = "你擁有非常均衡且多元的職能天賦！可以試著結合你投資最多金幣的前兩項屬性，打造獨一無二的跨界夢想職業。";
+  const adviceText = careerMap[code] || careerMap[top2 + top1] || defaultAdvice;
+
+  document.getElementById('career-description').innerHTML = `
+    <strong>【你的雙重職業英雄組合】：${riasecMeta[top1].title} (${top1}) + ${riasecMeta[top2].title} (${top2})</strong><br><br>
+    ${adviceText}
+  `;
+}
+
+// Start app
+window.onload = function() {
+  renderQuiz();
+};
+</script>
+
+</body>
+</html>
